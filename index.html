@@ -1,0 +1,1730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ampodia-Diono Dental Clinic — Clinic OS (Demo)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext y='18' font-size='18'%3E%F0%9F%A6%B7%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          paper: '#F5F6F3',
+          plane: '#EFF1EC',
+          ink: '#17262A',
+          inkmuted: '#57676A',
+          inkfaint: '#8B9A9B',
+          line: '#DCE2DC',
+          tealdeep: '#1F3B3C',
+          tealdeep2: '#28494A',
+          tealmid: '#345F5F',
+          restoration: '#2E5C8A',
+          restorationsoft: '#DCE6EF',
+          caries: '#B23A2E',
+          cariessoft: '#F3DEDA',
+          good: '#0ca30c',
+          warn: '#c1852b',
+          warnsoft: '#F4E6D2',
+          goodsoft: '#DCEFDC',
+          critical: '#d03b3b',
+          criticalsoft: '#F6DCDC',
+          seriesblue: '#2a78d6',
+          seriesorange: '#eb6834',
+          seriesaqua: '#1baf7a',
+          seriesyellow: '#eda100',
+          seriesmagenta: '#e87ba4',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          sans: ['"IBM Plex Sans"', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+        borderRadius: { tooth: '46% 46% 30% 30% / 58% 58% 24% 24%' },
+      },
+    },
+  };
+</script>
+<style>
+  html { color-scheme: light; }
+  body { -webkit-font-smoothing: antialiased; }
+  ::selection { background: #28494A; color: #fff; }
+
+  :focus-visible { outline: 2px solid #2E5C8A; outline-offset: 2px; border-radius: 4px; }
+
+  .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #DCE2DC; border-radius: 8px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+
+  main table th:not(:last-child), main table td:not(:last-child) { padding-right: 20px; }
+
+  .nav-item[data-active="true"] { background: rgba(255,255,255,0.08); color: #fff; }
+  .nav-item[data-active="true"] .nav-bar { opacity: 1; transform: scaleY(1); }
+  .nav-bar { opacity: 0; transform: scaleY(0.3); transition: opacity .18s ease, transform .18s ease; }
+
+  .panel { animation: rise .32s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .tooth {
+    width: 25px; height: 32px;
+    border-radius: 40% 40% 28% 28% / 50% 50% 22% 22%;
+    border: 1.5px solid #B8C4C2;
+    background: #ffffff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease, background-color .15s ease, border-color .15s ease;
+    position: relative;
+  }
+  .tooth:hover { transform: scale(1.1); box-shadow: 0 3px 8px rgba(23,38,42,0.14); z-index: 2; }
+  .tooth span { font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; color: #6B7A78; pointer-events: none; }
+  .tooth[data-state="treatment"] { background: #F3DEDA; border-color: #B23A2E; }
+  .tooth[data-state="treatment"] span { color: #7A2A21; font-weight: 600; }
+  .tooth[data-state="restored"] { background: #DCE6EF; border-color: #2E5C8A; }
+  .tooth[data-state="restored"] span { color: #1F3E5C; font-weight: 600; }
+  .tooth-sm { width: 20px; height: 26px; }
+  .tooth-sm span { font-size: 7.5px; }
+  .tooth-gap { margin-left: 14px; }
+
+  .yn2 { color: #57676A; background: #fff; transition: background-color .12s ease, color .12s ease; }
+  .yn2[data-active="true"][data-val="yes"] { background: #B23A2E; color: #fff; }
+  .yn2[data-active="true"][data-val="no"] { background: #1F3B3C; color: #fff; }
+
+  .sig-canvas { touch-action: none; }
+
+  .toast { animation: toastin .28s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes toastin { from { opacity: 0; transform: translateX(16px) scale(.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
+
+  .chip { transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
+
+  .scan-frame { position: relative; }
+  .scan-corner { position: absolute; width: 22px; height: 22px; border-color: #E9EDEA; }
+  .scanning .scan-corner { border-color: #7FBFA8; }
+  .scan-line { position: absolute; left: 6%; right: 6%; height: 2px; background: linear-gradient(90deg, transparent, #7FBFA8, transparent); opacity: 0; }
+  .scanning .scan-line { opacity: 1; animation: scanmove 1.5s ease-in-out infinite; }
+  @keyframes scanmove { 0% { top: 12%; } 50% { top: 85%; } 100% { top: 12%; } }
+  .pulse-dot { animation: pulsedot 1.5s ease-in-out infinite; }
+  @keyframes pulsedot { 0%,100% { opacity:.35 } 50% { opacity: 1 } }
+
+  .bar-rise { transform-origin: bottom; animation: barrise .5s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes barrise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel, .toast, .bar-rise { animation: none !important; }
+    .tooth, .tooth:hover { transition: none !important; transform: none !important; }
+    .scan-line { animation: none !important; }
+    .pulse-dot { animation: none !important; }
+  }
+
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: fixed; inset: 0; padding: 24px; }
+  }
+</style>
+</head>
+<body class="bg-paper text-ink font-sans antialiased">
+
+<div class="flex h-screen overflow-hidden relative">
+
+  <!-- Sidebar backdrop (mobile) -->
+  <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-ink/40 z-30 lg:hidden"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-64 bg-tealdeep text-white flex flex-col shrink-0 fixed lg:static inset-y-0 left-0 z-40 -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out">
+    <div class="px-5 py-6 border-b border-white/10">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1.9 0-2.9 1.1-3.5 1.1C7.4 4.1 6.4 3.4 5.3 3.9c-1.5.7-1.7 3.1-1 5.6.5 2 1.3 3 1.5 5 .15 1.5.5 3.8 1.6 3.8.9 0 1.05-1.9 1.35-3.1.2-.85.5-1.5 1.6-1.5s1.4.65 1.6 1.5c.3 1.2.45 3.1 1.35 3.1 1.1 0 1.45-2.3 1.6-3.8.2-2 1-3 1.5-5 .7-2.5.5-4.9-1-5.6-1.1-.5-2.1.2-3.15.2Z"/></svg>
+        </div>
+        <div>
+          <p class="font-display font-semibold text-[15px] leading-none tracking-tight">Ampodia-Diono Dental Clinic</p>
+          <p class="text-[10.5px] text-white/45 mt-1.5 font-mono tracking-wider">CLINIC OS · DEMO BUILD</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto scrollbar-thin">
+      <button class="nav-item relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13.5px] text-white/70 hover:text-white hover:bg-white/5 transition-colors" data-target="registration" data-active="true">
+        <span class="nav-bar absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-white"></span>
+        <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.2"/><circle cx="8.4" cy="10.3" r="1.6"/><path d="M6 15.3c.5-1.4 1.7-1.9 2.4-1.9s2 .5 2.4 1.9"/><path d="M14 9h4M14 12h4M14 15h2.4"/></svg>
+        Registration
+      </button>
+      <button class="nav-item relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13.5px] text-white/70 hover:text-white hover:bg-white/5 transition-colors" data-target="dentist">
+        <span class="nav-bar absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-white"></span>
+        <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2c-1.6 0-2.5.95-3 .95-.9 0-1.7-.6-2.6-.15-1.3.6-1.5 2.7-.9 4.9.45 1.75 1.15 2.6 1.3 4.35.15 1.3.45 3.3 1.4 3.3.8 0 .9-1.65 1.15-2.7.2-.75.45-1.3 1.4-1.3.95 0 1.2.55 1.4 1.3.25 1.05.35 2.7 1.15 2.7.95 0 1.25-2 1.4-3.3.15-1.75.85-2.6 1.3-4.35.6-2.2.4-4.3-.9-4.9-.9-.45-1.7.15-2.6.15-.5 0-1.4-.95-3-.95Z"/></svg>
+        Dentist Portal
+      </button>
+      <button class="nav-item relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13.5px] text-white/70 hover:text-white hover:bg-white/5 transition-colors" data-target="inventory">
+        <span class="nav-bar absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-white"></span>
+        <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3.5 7.3 12 11.7l8.5-4.4L12 3Z"/><path d="M3.5 12 12 16.4l8.5-4.4"/><path d="M3.5 16.5 12 21l8.5-4.5"/></svg>
+        Inventory
+      </button>
+      <button class="nav-item relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13.5px] text-white/70 hover:text-white hover:bg-white/5 transition-colors" data-target="payments">
+        <span class="nav-bar absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-white"></span>
+        <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h11v18l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-1 .65V3Z"/><path d="M9 8.2h6M9 11.4h6M9 14.6h3.6"/></svg>
+        Payments
+      </button>
+      <button class="nav-item relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13.5px] text-white/70 hover:text-white hover:bg-white/5 transition-colors" data-target="attendance">
+        <span class="nav-bar absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-white"></span>
+        <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V6.6A2.6 2.6 0 0 1 6.6 4H9M20 9V6.6A2.6 2.6 0 0 0 17.4 4H15M4 15v2.4A2.6 2.6 0 0 0 6.6 20H9M20 15v2.4a2.6 2.6 0 0 1-2.6 2.6H15"/><circle cx="12" cy="12" r="3"/></svg>
+        Attendance
+      </button>
+      <button class="nav-item relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[13.5px] text-white/70 hover:text-white hover:bg-white/5 transition-colors" data-target="analytics">
+        <span class="nav-bar absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-white"></span>
+        <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="3.4" height="9"/><rect x="10.3" y="6" width="3.4" height="14"/><rect x="16.6" y="14" width="3.4" height="6"/></svg>
+        Analytics
+      </button>
+    </nav>
+
+    <div class="px-4 py-4 border-t border-white/10">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[11px] font-semibold font-display">LR</div>
+        <div class="leading-tight">
+          <p class="text-[12.5px] font-medium">Liza Ramos</p>
+          <p class="text-[10.5px] text-white/45">Front desk · Sun, Jul 26</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="border-b border-line bg-paper/90 backdrop-blur px-4 sm:px-8 py-4 sm:py-5 flex items-start justify-between gap-3 shrink-0">
+      <div class="flex items-start gap-3 min-w-0">
+        <button id="btn-menu" class="lg:hidden shrink-0 w-9 h-9 rounded-lg border border-line flex items-center justify-center text-inkmuted hover:bg-plane mt-0.5" aria-label="Open menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <h1 id="header-title" class="font-display font-semibold text-[19px] sm:text-[22px] tracking-tight">Patient Registration</h1>
+            <span id="header-tag" class="text-[10.5px] font-mono tracking-wide uppercase px-2 py-0.5 rounded-full bg-tealdeep/8 text-tealdeep2 border border-tealdeep/15">Front desk</span>
+          </div>
+          <p id="header-sub" class="hidden sm:block text-[13px] text-inkmuted mt-1 max-w-xl">New patients scan the queue number's QR code to register themselves; staff can pull up a returning patient instead of re-entering their details.</p>
+        </div>
+      </div>
+      <div class="hidden md:block text-right shrink-0 pl-6">
+        <p class="text-[12px] font-mono text-inkfaint">Sun, Jul 26, 2026</p>
+        <p class="text-[11px] text-inkfaint mt-0.5">Single clinic · browser-based</p>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto scrollbar-thin px-8 py-8">
+
+      <!-- ================= REGISTRATION ================= -->
+      <section id="panel-registration" class="panel space-y-8">
+        <div>
+          <form id="form-intake" class="bg-white border border-line rounded-2xl p-6 space-y-4">
+            <div class="flex items-baseline justify-between">
+              <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint">New patient intake</p>
+              <p class="text-[11px] text-inkfaint">Matches the clinic's paper chart</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <label class="block text-[12.5px] sm:col-span-2">
+                <span class="text-inkmuted">Last name</span>
+                <input id="in-lastname" required type="text" placeholder="Dela Cruz" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+              <label class="block text-[12.5px]">
+                <span class="text-inkmuted">First name</span>
+                <input id="in-firstname" required type="text" placeholder="Juan" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+              <label class="block text-[12.5px]">
+                <span class="text-inkmuted">M.I. / Sex</span>
+                <div class="mt-1.5 flex gap-1.5">
+                  <input id="in-mi" type="text" maxlength="2" placeholder="M.I." class="w-1/2 rounded-lg border border-line px-2 py-2 text-[13.5px] text-center focus:border-tealmid outline-none" />
+                  <select id="in-sex" class="w-1/2 rounded-lg border border-line px-1 py-2 text-[13.5px] focus:border-tealmid outline-none">
+                    <option value="F">F</option>
+                    <option value="M">M</option>
+                  </select>
+                </div>
+              </label>
+
+              <label class="block text-[12.5px]">
+                <span class="text-inkmuted">Age</span>
+                <input id="in-age" type="number" min="0" placeholder="—" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+              <label class="block text-[12.5px]">
+                <span class="text-inkmuted">Birthday</span>
+                <input id="in-birthday" required type="date" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+              <label class="block text-[12.5px]">
+                <span class="text-inkmuted">Height</span>
+                <input id="in-height" type="text" placeholder="e.g. 160 cm" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+              <label class="block text-[12.5px]">
+                <span class="text-inkmuted">Weight</span>
+                <input id="in-weight" type="text" placeholder="e.g. 54 kg" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+
+              <label class="block text-[12.5px] sm:col-span-2">
+                <span class="text-inkmuted">Address</span>
+                <input id="in-address" type="text" placeholder="Street, Barangay, City" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+              <label class="block text-[12.5px]">
+                <span class="text-inkmuted">Contact #</span>
+                <input id="in-contact" required type="tel" placeholder="0917 000 0000" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+              <label class="block text-[12.5px]">
+                <span class="text-inkmuted">Occupation</span>
+                <input id="in-occupation" type="text" placeholder="e.g. Teacher" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+            </div>
+
+            <div class="pt-2 border-t border-line">
+              <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-2.5">Medical history</p>
+              <div id="in-medhistory" class="divide-y divide-line"></div>
+              <label id="in-allergy-detail-wrap" class="hidden block text-[12.5px] mt-3">
+                <span class="text-inkmuted">Specify allergy / allergies</span>
+                <input id="in-allergy-detail" type="text" placeholder="e.g. Penicillin, Latex" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <p class="text-[11.5px] text-inkfaint">A patient number is assigned automatically on save.</p>
+              <button type="submit" class="bg-tealdeep hover:bg-tealdeep2 text-white text-[13px] font-medium px-4 py-2.5 rounded-lg transition-colors">Save patient record</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="bg-white border border-line rounded-2xl p-6">
+          <div class="flex items-baseline justify-between mb-1">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint">Medical history questionnaire</p>
+            <p class="text-[11px] text-inkfaint">Separate physician-facing form, kept alongside the chart above</p>
+          </div>
+          <p class="text-[12.5px] text-inkmuted mb-5">Answer every question — for the clinic's records only, strictly confidential.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+            <label class="block text-[12.5px]">
+              <span class="text-inkmuted">Last physical exam (approximately)</span>
+              <input id="mh-lastexam" type="text" placeholder="e.g. January 2026" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+            </label>
+            <label class="block text-[12.5px]">
+              <span class="text-inkmuted">Personal physician — name, address, contact</span>
+              <input id="mh-physician" type="text" placeholder="Optional" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+            </label>
+          </div>
+
+          <div id="mh-conditional" class="space-y-3 mb-5 pb-5 border-b border-line"></div>
+
+          <p class="text-[12.5px] text-inkmuted mb-1">Do you have or had any of the following diseases or problems?</p>
+          <div id="mh-conditions" class="divide-y divide-line"></div>
+        </div>
+
+        <div class="bg-white border border-line rounded-2xl p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+            <div>
+              <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint">Returning patient lookup</p>
+              <p class="text-[13px] text-inkmuted mt-1">Search by name or patient number instead of re-registering.</p>
+            </div>
+            <input id="patient-search" type="text" placeholder="Search patients…" class="w-full sm:w-64 rounded-lg border border-line px-3 py-2 text-[13px] focus:border-tealmid outline-none" />
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-[13px]">
+              <thead>
+                <tr class="text-left text-[11px] uppercase tracking-wide text-inkfaint border-b border-line">
+                  <th class="pb-2.5 font-medium">Patient</th>
+                  <th class="pb-2.5 font-medium">Patient No.</th>
+                  <th class="pb-2.5 font-medium">Contact</th>
+                  <th class="pb-2.5 font-medium">Last visit</th>
+                  <th class="pb-2.5 font-medium">Allergies</th>
+                  <th class="pb-2.5 font-medium text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="patient-table-body" class="divide-y divide-line"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= DENTIST PORTAL ================= -->
+      <section id="panel-dentist" class="panel hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white border border-line rounded-2xl px-5 py-3">
+          <div class="flex items-center gap-3 text-[13px]">
+            <span class="text-inkmuted shrink-0">Viewing chart for</span>
+            <div class="relative w-full sm:w-80">
+              <input id="dentist-patient-search" type="text" placeholder="Search by name or patient no…" autocomplete="off"
+                class="w-full rounded-lg border border-line px-3 py-1.5 text-[13px] font-medium focus:border-tealmid outline-none" />
+              <div id="dentist-patient-results" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-line rounded-lg shadow-lg max-h-72 overflow-y-auto scrollbar-thin z-20"></div>
+            </div>
+          </div>
+          <p class="text-[12px] text-inkfaint font-mono shrink-0">Dr. Elaine Joy Ampodia, DMD · Chair 2</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- patient info -->
+          <div class="bg-white border border-line rounded-2xl p-6">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-4">Patient</p>
+            <div class="flex items-center gap-3 mb-4">
+              <div id="dp-avatar" class="w-12 h-12 rounded-full bg-tealdeep/10 text-tealdeep2 flex items-center justify-center font-display font-semibold text-[15px] shrink-0"></div>
+              <div>
+                <p id="dp-name" class="font-display font-semibold text-[16px] leading-tight"></p>
+                <p id="dp-id" class="text-[12px] text-inkfaint font-mono mt-0.5"></p>
+              </div>
+            </div>
+            <dl class="space-y-2.5 text-[13px]">
+              <div class="flex justify-between"><dt class="text-inkmuted">Age / Sex</dt><dd id="dp-age" class="font-medium"></dd></div>
+              <div class="flex justify-between"><dt class="text-inkmuted">Height / Weight</dt><dd id="dp-vitals" class="font-medium"></dd></div>
+              <div class="flex justify-between"><dt class="text-inkmuted">Occupation</dt><dd id="dp-occupation" class="font-medium"></dd></div>
+              <div class="flex justify-between"><dt class="text-inkmuted">Contact</dt><dd id="dp-contact" class="font-mono text-[12.5px]"></dd></div>
+              <div class="flex justify-between"><dt class="text-inkmuted">Last visit</dt><dd id="dp-lastvisit" class="font-medium"></dd></div>
+            </dl>
+            <div class="mt-4 pt-4 border-t border-line">
+              <p class="text-[11.5px] text-inkmuted mb-1.5">Allergies</p>
+              <div id="dp-allergies" class="flex flex-wrap gap-1.5"></div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-line">
+              <p class="text-[11.5px] text-inkmuted mb-1.5">Medical history flags</p>
+              <div id="dp-medflags" class="flex flex-wrap gap-1.5"></div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-line">
+              <p class="text-[11.5px] text-inkmuted mb-2">Visit history</p>
+              <ul id="dp-history" class="space-y-2 text-[12.5px] max-h-40 overflow-y-auto scrollbar-thin pr-1"></ul>
+            </div>
+          </div>
+
+          <!-- odontogram -->
+          <div class="lg:col-span-2 bg-white border border-line rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-1">
+              <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint">Dental chart — tap a tooth</p>
+              <button id="chart-clear" class="text-[12px] text-inkmuted hover:text-caries transition-colors">Clear chart</button>
+            </div>
+            <p class="text-[12px] text-inkmuted mb-5">FDI numbering, permanent + temporary teeth — matches the clinic's paper chart. Cycle a tooth through healthy → needs treatment → restored.</p>
+
+            <div class="overflow-x-auto scrollbar-thin -mx-1 px-1">
+              <div class="min-w-[620px]">
+                <div class="flex justify-between text-[10px] uppercase tracking-wide text-inkfaint px-1 mb-1.5" style="padding-left: 92px; padding-right: 8px;">
+                  <span>Right</span><span>Left</span>
+                </div>
+                <div class="space-y-1.5 py-1">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-20 shrink-0 text-right text-[10px] uppercase tracking-wide text-inkfaint">Temporary</span>
+                    <div id="arch-upper-temp" class="flex-1 flex justify-center gap-1"></div>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-20 shrink-0 text-right text-[10px] uppercase tracking-wide text-inkfaint">Permanent</span>
+                    <div id="arch-upper-perm" class="flex-1 flex justify-center gap-1"></div>
+                  </div>
+                  <div class="border-t border-dashed border-line my-2" style="margin-left: 92px;"></div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-20 shrink-0 text-right text-[10px] uppercase tracking-wide text-inkfaint">Permanent</span>
+                    <div id="arch-lower-perm" class="flex-1 flex justify-center gap-1"></div>
+                  </div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-20 shrink-0 text-right text-[10px] uppercase tracking-wide text-inkfaint">Temporary</span>
+                    <div id="arch-lower-temp" class="flex-1 flex justify-center gap-1"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-5 justify-center mt-5 text-[12px] text-inkmuted">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full border border-[#B8C4C2] bg-white inline-block"></span>Healthy</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full border border-caries bg-cariessoft inline-block"></span>Needs treatment</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full border border-restoration bg-restorationsoft inline-block"></span>Restored / existing work</span>
+            </div>
+
+            <div class="mt-5 pt-5 border-t border-line">
+              <p class="text-[11.5px] text-inkmuted mb-2">Treatment plan (from chart)</p>
+              <ul id="treatment-plan" class="text-[13px] space-y-1.5"></ul>
+              <p id="treatment-plan-empty" class="text-[12.5px] text-inkfaint italic">No teeth flagged yet — tap the chart above.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- prescription -->
+        <div class="bg-white border border-line rounded-2xl p-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-3">Quick-select prescription</p>
+              <div id="quick-meds" class="flex flex-wrap gap-2 mb-5"></div>
+
+              <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-3">Custom medicine (fallback)</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <input id="custom-med-name" type="text" placeholder="Medicine name" class="sm:col-span-2 rounded-lg border border-line px-3 py-2 text-[13px] focus:border-tealmid outline-none" />
+                <input id="custom-med-dosage" type="text" placeholder="Dosage, e.g. 1 tablet 3x/day" class="rounded-lg border border-line px-3 py-2 text-[13px] focus:border-tealmid outline-none" />
+                <input id="custom-med-instructions" type="text" placeholder="Instructions" class="rounded-lg border border-line px-3 py-2 text-[13px] focus:border-tealmid outline-none" />
+              </div>
+              <button id="add-custom-med" class="mt-2.5 text-[13px] font-medium text-tealdeep2 hover:text-tealdeep transition-colors">+ Add to prescription</button>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint">Current prescription</p>
+                <span id="rx-count" class="text-[11.5px] text-inkfaint"></span>
+              </div>
+              <ul id="rx-list" class="space-y-2 mb-4"></ul>
+              <p id="rx-empty" class="text-[12.5px] text-inkfaint italic">Nothing prescribed for this visit yet.</p>
+
+              <div class="flex items-center justify-end gap-3 pt-4 mt-2 border-t border-line">
+                <span id="save-visit-hint" class="text-[12px] text-inkfaint mr-auto">Saves the chart marks and prescription to this patient's record.</span>
+                <button id="save-visit" class="bg-tealdeep hover:bg-tealdeep2 text-white text-[13px] font-medium px-4 py-2.5 rounded-lg transition-colors">Save visit record</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= INVENTORY ================= -->
+      <section id="panel-inventory" class="panel hidden space-y-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white border border-line rounded-2xl p-4">
+            <p class="text-[11px] text-inkfaint uppercase tracking-wide font-mono">Total items</p>
+            <p id="inv-stat-total" class="font-display font-semibold text-[24px] mt-1"></p>
+          </div>
+          <div class="bg-white border border-line rounded-2xl p-4">
+            <p class="text-[11px] text-inkfaint uppercase tracking-wide font-mono">Low stock</p>
+            <p id="inv-stat-low" class="font-display font-semibold text-[24px] mt-1 text-critical"></p>
+          </div>
+          <div class="bg-white border border-line rounded-2xl p-4 col-span-2 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2">
+            <input id="inventory-search" type="text" placeholder="Search supplies…" class="w-full sm:w-48 rounded-lg border border-line px-3 py-2 text-[13px] focus:border-tealmid outline-none" />
+            <div class="flex gap-2">
+              <button id="btn-stock-in" class="flex-1 sm:flex-none whitespace-nowrap bg-good/10 hover:bg-good/20 text-[#0a7d0a] text-[13px] font-medium px-3.5 py-2 rounded-lg transition-colors">↑ Stock in</button>
+              <button id="btn-stock-out" class="flex-1 sm:flex-none whitespace-nowrap bg-critical/10 hover:bg-critical/20 text-[#a12f2f] text-[13px] font-medium px-3.5 py-2 rounded-lg transition-colors">↓ Stock out</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white border border-line rounded-2xl p-6">
+          <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-4">Stock list</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-[13px]">
+              <thead>
+                <tr class="text-left text-[11px] uppercase tracking-wide text-inkfaint border-b border-line">
+                  <th class="pb-2.5 font-medium">Item</th>
+                  <th class="pb-2.5 font-medium">Category</th>
+                  <th class="pb-2.5 font-medium text-right">On hand</th>
+                  <th class="pb-2.5 font-medium">Unit</th>
+                  <th class="pb-2.5 font-medium text-right">Threshold</th>
+                  <th class="pb-2.5 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-table-body" class="divide-y divide-line font-mono"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PAYMENTS ================= -->
+      <section id="panel-payments" class="panel hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <form id="form-payment" class="bg-white border border-line rounded-2xl p-6 space-y-4">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint">Record a payment</p>
+            <label class="block text-[12.5px]">
+              <span class="text-inkmuted">Patient</span>
+              <select id="payment-patient" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none"></select>
+            </label>
+            <label class="block text-[12.5px]">
+              <span class="text-inkmuted">Amount paid</span>
+              <div class="mt-1.5 flex items-center rounded-lg border border-line focus-within:border-tealmid">
+                <span class="pl-3 text-inkfaint text-[13.5px]">₱</span>
+                <input id="payment-amount" required type="number" min="0" step="1" placeholder="0" class="w-full px-2 py-2 text-[13.5px] outline-none rounded-lg" />
+              </div>
+            </label>
+            <fieldset class="text-[12.5px]">
+              <legend class="text-inkmuted mb-1.5">Mode of payment</legend>
+              <div id="payment-mode-group" class="grid grid-cols-3 gap-2">
+                <label class="mode-option text-center border border-line rounded-lg py-2 cursor-pointer text-[12.5px]"><input class="hidden" type="radio" name="mode" value="Cash" checked>Cash</label>
+                <label class="mode-option text-center border border-line rounded-lg py-2 cursor-pointer text-[12.5px]"><input class="hidden" type="radio" name="mode" value="GCash">GCash</label>
+                <label class="mode-option text-center border border-line rounded-lg py-2 cursor-pointer text-[12.5px]"><input class="hidden" type="radio" name="mode" value="Bank transfer">Bank</label>
+              </div>
+            </fieldset>
+            <label id="payment-ref-wrap" class="block text-[12.5px] hidden">
+              <span class="text-inkmuted">Reference / transaction number</span>
+              <input id="payment-ref" type="text" placeholder="Manually entered — no live gateway" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none font-mono" />
+            </label>
+            <div class="flex justify-end pt-1">
+              <button type="submit" class="bg-tealdeep hover:bg-tealdeep2 text-white text-[13px] font-medium px-4 py-2.5 rounded-lg transition-colors">Save payment</button>
+            </div>
+          </form>
+
+          <div class="bg-white border border-line rounded-2xl p-6">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-3">Prescription printing</p>
+            <p class="text-[12.5px] text-inkmuted mb-4">Print what the dentist prescribed so the patient can take it to a pharmacy.</p>
+            <label class="block text-[12.5px] mb-4">
+              <span class="text-inkmuted">Patient</span>
+              <select id="print-patient" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none"></select>
+            </label>
+            <div id="print-preview-inline" class="rounded-lg border border-dashed border-line p-4 text-[12.5px] text-inkmuted min-h-[84px]"></div>
+            <button id="btn-open-print" class="mt-4 w-full bg-tealdeep/8 hover:bg-tealdeep/15 text-tealdeep2 text-[13px] font-medium px-4 py-2.5 rounded-lg transition-colors">Open print preview</button>
+          </div>
+        </div>
+
+        <div class="bg-white border border-line rounded-2xl p-6">
+          <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-4">Payment history</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-[13px]">
+              <thead>
+                <tr class="text-left text-[11px] uppercase tracking-wide text-inkfaint border-b border-line">
+                  <th class="pb-2.5 font-medium">Date</th>
+                  <th class="pb-2.5 font-medium">Patient</th>
+                  <th class="pb-2.5 font-medium text-right">Amount</th>
+                  <th class="pb-2.5 font-medium">Mode</th>
+                  <th class="pb-2.5 font-medium">Reference</th>
+                </tr>
+              </thead>
+              <tbody id="payment-table-body" class="divide-y divide-line font-mono"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ATTENDANCE ================= -->
+      <section id="panel-attendance" class="panel hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white border border-line rounded-2xl p-6 flex flex-col items-center text-center">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-4 self-start">Kiosk — facial recognition clock-in</p>
+            <div id="scan-frame" class="scan-frame w-48 h-48 rounded-2xl bg-plane relative overflow-hidden mb-4">
+              <span class="scan-corner border-t-2 border-l-2 rounded-tl-lg" style="top:8px;left:8px"></span>
+              <span class="scan-corner border-t-2 border-r-2 rounded-tr-lg" style="top:8px;right:8px"></span>
+              <span class="scan-corner border-b-2 border-l-2 rounded-bl-lg" style="bottom:8px;left:8px"></span>
+              <span class="scan-corner border-b-2 border-r-2 rounded-br-lg" style="bottom:8px;right:8px"></span>
+              <span class="scan-line"></span>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#B8C4C2" stroke-width="1.3"><circle cx="12" cy="8.5" r="3.4"/><path d="M5.5 19c1-3.6 3.7-5 6.5-5s5.5 1.4 6.5 5"/></svg>
+              </div>
+            </div>
+            <p id="scan-status" class="text-[13px] font-medium h-5">Ready to scan</p>
+            <button id="btn-scan" class="mt-3 bg-tealdeep hover:bg-tealdeep2 text-white text-[13px] font-medium px-5 py-2.5 rounded-lg transition-colors">Scan face</button>
+            <button id="btn-enroll" class="mt-2 text-[12px] text-inkmuted hover:text-tealdeep2">+ Enroll new employee</button>
+          </div>
+
+          <div class="bg-white border border-line rounded-2xl p-6">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-1">Manual fallback</p>
+            <p class="text-[12.5px] text-inkmuted mb-4">For when the face match fails — lighting, camera issue, etc. The log is never blocked.</p>
+            <label class="block text-[12.5px] mb-3">
+              <span class="text-inkmuted">Employee</span>
+              <select id="manual-employee" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none"></select>
+            </label>
+            <label class="block text-[12.5px] mb-1">
+              <span class="text-inkmuted">PIN</span>
+              <input id="manual-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[15px] tracking-[6px] focus:border-tealmid outline-none font-mono" />
+            </label>
+            <p class="text-[11px] text-inkfaint mb-4">Demo PIN: 1234</p>
+            <button id="btn-manual-log" class="w-full bg-tealdeep/8 hover:bg-tealdeep/15 text-tealdeep2 text-[13px] font-medium px-4 py-2.5 rounded-lg transition-colors">Log attendance manually</button>
+          </div>
+        </div>
+
+        <div class="bg-white border border-line rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint">Attendance log</p>
+            <button id="btn-export-attendance" class="text-[12.5px] font-medium text-tealdeep2 hover:text-tealdeep">Export as CSV ↓</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-[13px]">
+              <thead>
+                <tr class="text-left text-[11px] uppercase tracking-wide text-inkfaint border-b border-line">
+                  <th class="pb-2.5 font-medium">Date</th>
+                  <th class="pb-2.5 font-medium">Employee</th>
+                  <th class="pb-2.5 font-medium">Time in</th>
+                  <th class="pb-2.5 font-medium">Time out</th>
+                  <th class="pb-2.5 font-medium">Method</th>
+                  <th class="pb-2.5 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody id="attendance-table-body" class="divide-y divide-line font-mono"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ANALYTICS ================= -->
+      <section id="panel-analytics" class="panel hidden space-y-6">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div class="bg-white border border-line rounded-2xl p-4">
+            <p class="text-[10.5px] text-inkfaint uppercase tracking-wide font-mono">Visits today</p>
+            <p class="font-display font-semibold text-[22px] mt-1">9</p>
+            <p class="text-[11px] text-[#0a7d0a] mt-0.5">↑ 2 vs yesterday</p>
+          </div>
+          <div class="bg-white border border-line rounded-2xl p-4">
+            <p class="text-[10.5px] text-inkfaint uppercase tracking-wide font-mono">Revenue (month)</p>
+            <p class="font-display font-semibold text-[22px] mt-1">₱128,450</p>
+            <p class="text-[11px] text-inkfaint mt-0.5">across 3 payment modes</p>
+          </div>
+          <div class="bg-white border border-line rounded-2xl p-4">
+            <p class="text-[10.5px] text-inkfaint uppercase tracking-wide font-mono">New vs returning</p>
+            <p class="font-display font-semibold text-[22px] mt-1">32% / 68%</p>
+            <p class="text-[11px] text-inkfaint mt-0.5">this month</p>
+          </div>
+          <div class="bg-white border border-line rounded-2xl p-4">
+            <p class="text-[10.5px] text-inkfaint uppercase tracking-wide font-mono">Low-stock items</p>
+            <p id="an-stat-lowstock" class="font-display font-semibold text-[22px] mt-1 text-critical"></p>
+            <p class="text-[11px] text-inkfaint mt-0.5">live from inventory</p>
+          </div>
+          <div class="bg-white border border-line rounded-2xl p-4">
+            <p class="text-[10.5px] text-inkfaint uppercase tracking-wide font-mono">Attendance rate</p>
+            <p class="font-display font-semibold text-[22px] mt-1">96%</p>
+            <p class="text-[11px] text-inkfaint mt-0.5">this month</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white border border-line rounded-2xl p-6">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-1">Patient visit trends</p>
+            <p class="text-[12px] text-inkmuted mb-5">Weekly visit counts, last 6 weeks.</p>
+            <div class="flex items-end gap-3 h-36" id="chart-visits"></div>
+          </div>
+
+          <div class="bg-white border border-line rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-1">
+              <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint">Revenue by payment mode</p>
+            </div>
+            <div class="flex items-center gap-4 mb-4 text-[11.5px] text-inkmuted">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-seriesblue inline-block"></span>Cash</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-seriesorange inline-block"></span>GCash</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-seriesaqua inline-block"></span>Bank transfer</span>
+            </div>
+            <div class="space-y-3" id="chart-revenue"></div>
+          </div>
+
+          <div class="bg-white border border-line rounded-2xl p-6">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-1">Treatment / procedure breakdown</p>
+            <p class="text-[12px] text-inkmuted mb-5">Most common, logged via dental charting.</p>
+            <div class="space-y-3" id="chart-treatments"></div>
+          </div>
+
+          <div class="bg-white border border-line rounded-2xl p-6">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-1">Prescription trends</p>
+            <p class="text-[12px] text-inkmuted mb-5">Most frequently prescribed medicines.</p>
+            <div class="space-y-3" id="chart-prescriptions"></div>
+          </div>
+
+          <div class="bg-white border border-line rounded-2xl p-6">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-1">Inventory snapshot</p>
+            <p class="text-[12px] text-inkmuted mb-4">Fast-moving supplies currently below threshold.</p>
+            <ul id="an-low-stock-list" class="space-y-2 text-[13px]"></ul>
+          </div>
+
+          <div class="bg-white border border-line rounded-2xl p-6">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-inkfaint mb-1">Attendance overview</p>
+            <p class="text-[12px] text-inkmuted mb-5">Punctuality this month, from facial recognition logs.</p>
+            <div class="flex h-3 rounded-full overflow-hidden border border-line">
+              <div class="bg-good" style="width:78%"></div>
+              <div class="bg-warn ml-[2px]" style="width:14%"></div>
+              <div class="bg-critical ml-[2px]" style="width:6%"></div>
+            </div>
+            <div class="flex items-center gap-4 mt-3 text-[11.5px] text-inkmuted flex-wrap">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-good inline-block"></span>On time — 78%</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-warn inline-block"></span>Late — 14%</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-critical inline-block"></span>Absent — 6%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toast-container" class="fixed bottom-6 right-6 flex flex-col gap-2 z-[60] w-80"></div>
+
+<!-- Stock modal -->
+<div id="modal-stock" class="hidden fixed inset-0 bg-ink/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto scrollbar-thin">
+    <p id="stock-modal-title" class="font-display font-semibold text-[16px] mb-1">Stock in</p>
+    <p class="text-[12.5px] text-inkmuted mb-4">Add as many items as you need, then confirm once.</p>
+
+    <div class="flex items-center gap-2 text-[11px] uppercase tracking-wide text-inkfaint mb-1.5 px-0.5">
+      <span class="flex-1">Item</span>
+      <span class="w-20 text-center">Quantity</span>
+      <span class="w-6"></span>
+    </div>
+    <div id="stock-modal-rows" class="space-y-2 mb-3"></div>
+    <button type="button" id="stock-modal-add-row" class="text-[13px] font-medium text-tealdeep2 hover:text-tealdeep mb-4">+ Add another item</button>
+
+    <label class="block text-[12.5px] mb-5">
+      <span class="text-inkmuted">Date</span>
+      <input id="stock-modal-date" type="date" value="2026-07-26" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+    </label>
+    <div class="flex justify-end gap-2">
+      <button id="stock-modal-cancel" class="px-4 py-2 rounded-lg text-[13px] text-inkmuted hover:bg-plane">Cancel</button>
+      <button id="stock-modal-confirm" class="px-4 py-2 rounded-lg text-[13px] font-medium bg-tealdeep hover:bg-tealdeep2 text-white">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Print modal -->
+<div id="modal-print" class="hidden fixed inset-0 bg-ink/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-0 w-full max-w-md overflow-hidden">
+    <div id="print-area" class="p-7 font-sans">
+      <div class="flex items-center justify-between border-b-2 border-tealdeep pb-3 mb-4">
+        <div>
+          <p class="font-display font-semibold text-[16px]">Ampodia-Diono Dental Clinic</p>
+          <p class="text-[11px] text-inkfaint">Medical Arts Bldg., Arradaza St., cor. Bula-Lagao Rd., General Santos City</p>
+        </div>
+        <p class="font-display italic text-[22px] text-tealdeep2">℞</p>
+      </div>
+      <div id="print-body" class="text-[13px] space-y-3"></div>
+      <div class="mt-8 pt-3 border-t border-line flex items-center justify-between text-[11.5px] text-inkfaint">
+        <span>Dr. Elaine Joy Ampodia, DMD · Lic. No. 0219873</span>
+        <span>Sun, Jul 26, 2026</span>
+      </div>
+    </div>
+    <div class="px-7 py-4 bg-plane flex justify-end gap-2 print:hidden">
+      <button id="print-close" class="px-4 py-2 rounded-lg text-[13px] text-inkmuted hover:bg-white">Close</button>
+      <button id="print-go" class="px-4 py-2 rounded-lg text-[13px] font-medium bg-tealdeep hover:bg-tealdeep2 text-white">Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- Extraction consent modal -->
+<div id="modal-consent" class="hidden fixed inset-0 bg-ink/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-7 w-full max-w-lg max-h-[90vh] overflow-y-auto scrollbar-thin">
+    <div class="flex items-center justify-between border-b-2 border-tealdeep pb-3 mb-4">
+      <div>
+        <p class="font-display font-semibold text-[16px]">Consent for Tooth Extraction</p>
+        <p class="text-[11px] text-inkfaint">Ampodia-Diono Dental Clinic · General Santos City</p>
+      </div>
+      <p class="font-display italic text-[20px] text-tealdeep2">℞</p>
+    </div>
+
+    <div class="flex justify-between text-[12.5px] mb-4">
+      <span>Patient: <span id="consent-patient" class="font-medium"></span></span>
+      <span>Tooth <span id="consent-tooth" class="font-mono font-medium"></span></span>
+      <span id="consent-date" class="text-inkfaint"></span>
+    </div>
+
+    <p class="text-[12.5px] text-inkmuted mb-2">This procedure has been explained to me. I understand the nature of my condition and the risks involved, including but not limited to:</p>
+    <ul class="text-[12.5px] text-inkmuted space-y-1.5 mb-4 list-disc list-inside">
+      <li>Common after-effects: pain, swelling, bruising, and discoloration around the extraction site.</li>
+      <li>Possible complications: infection, dry socket, delayed healing, and — for upper teeth — sinus involvement.</li>
+      <li>Temporary, and in rare cases lasting, numbness of the lip, chin, gum, cheek, or tongue near the site.</li>
+      <li>Drowsiness from anesthesia or medication — no driving or operating machinery for 24 hours after the procedure.</li>
+    </ul>
+
+    <label class="flex items-start gap-2.5 text-[12.5px] mb-4 cursor-pointer">
+      <input id="consent-checkbox" type="checkbox" class="mt-0.5" />
+      <span>I have read and understood the risks explained above, and I consent to the extraction of tooth <span id="consent-checkbox-tooth" class="font-mono font-medium"></span>.</span>
+    </label>
+
+    <p class="text-[11.5px] text-inkmuted mb-1.5">Signature over printed name of patient</p>
+    <canvas id="consent-signature" class="sig-canvas w-full h-28 border border-line rounded-lg bg-plane mb-1.5" width="460" height="120"></canvas>
+    <div class="flex justify-end mb-3">
+      <button type="button" id="consent-sig-clear" class="text-[11.5px] text-inkmuted hover:text-caries">Clear signature</button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+      <label class="block text-[12.5px]">
+        <span class="text-inkmuted">Printed name of patient</span>
+        <input id="consent-printed-name" type="text" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+      </label>
+      <label class="block text-[12.5px]">
+        <span class="text-inkmuted">Guardian (if minor)</span>
+        <input id="consent-guardian" type="text" placeholder="Optional" class="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-[13.5px] focus:border-tealmid outline-none" />
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <button type="button" id="consent-cancel" class="px-4 py-2 rounded-lg text-[13px] text-inkmuted hover:bg-plane">Cancel</button>
+      <button type="button" id="consent-confirm" disabled class="px-4 py-2 rounded-lg text-[13px] font-medium bg-tealdeep hover:bg-tealdeep2 text-white disabled:opacity-40 disabled:cursor-not-allowed">Confirm consent</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- Data ---------------- */
+  const quickMeds = [
+    { name: 'Amoxicillin 500mg', dosage: '1 capsule every 8 hours', instructions: 'Take with food for 7 days.' },
+    { name: 'Mefenamic Acid 500mg', dosage: '1 tablet every 8 hours', instructions: 'Take as needed for pain, after meals.' },
+    { name: 'Clindamycin 300mg', dosage: '1 capsule every 8 hours', instructions: 'Penicillin-allergy alternative. Take with food for 7 days.' },
+    { name: 'Paracetamol 500mg', dosage: '1 tablet every 6 hours', instructions: 'Take as needed for pain or fever.' },
+    { name: 'Ibuprofen 400mg', dosage: '1 tablet every 8 hours', instructions: 'Take after meals.' },
+  ];
+
+  const medicalHistoryItems = [
+    { key: 'allergy', label: 'Allergy' },
+    { key: 'asthma', label: 'Asthma' },
+    { key: 'anemia', label: 'Anemia' },
+    { key: 'bleedingProblem', label: 'Bleeding problem' },
+    { key: 'heartAilment', label: 'Heart ailment' },
+    { key: 'diabetes', label: 'Diabetes' },
+    { key: 'epilepsy', label: 'Epilepsy' },
+    { key: 'kidneyDisease', label: 'Kidney disease' },
+    { key: 'convulsion', label: 'Convulsion' },
+    { key: 'fainting', label: 'Fainting' },
+    { key: 'highBloodPressure', label: 'High blood pressure' },
+  ];
+  const blankHistory = () => Object.fromEntries(medicalHistoryItems.map(m => [m.key, false]));
+
+  // Longer physician-facing questionnaire — a separate paper form the clinic keeps alongside the chart.
+  const mhConditionalQuestions = [
+    { key: 'underCare', question: 'Are you now in a care of a physician?', detailLabel: 'What is the condition being treated?' },
+    { key: 'seriousIllness', question: 'Have you had any serious illnesses or operation?', detailLabel: 'What were the illnesses or operation?' },
+    { key: 'hospitalized', question: 'Have you been hospitalized within the past 5 years?', detailLabel: 'What was the problem?' },
+  ];
+  const mhConditionItems = [
+    { key: 'rheumaticFever', label: 'Rheumatic fever or rheumatic heart diseases' },
+    { key: 'heartAbnormality', label: 'Heart abnormalities present since birth' },
+    { key: 'cardiovascularDisease', label: 'Cardiovascular disease (heart trouble, heart attack, angina pectoris, stroke, high blood pressure, heart murmur)' },
+    { key: 'chestPain', label: 'Pain or pressure in chest upon exertion / deep breathing' },
+    { key: 'shortBreathExercise', label: 'Short breath after a mild exercise' },
+    { key: 'ankleSwelling', label: 'Ankles swell' },
+    { key: 'orthopnea', label: 'Short breath lying down, or requires extra pillows to sleep' },
+    { key: 'heartMurmurTold', label: 'Been told you have a heart murmur' },
+    { key: 'asthmaHayFever', label: 'Asthma or hay fever' },
+    { key: 'hivesRashes', label: 'Hives or skin rashes' },
+  ];
+  const blankQuestionnaire = () => ({
+    lastPhysicalExam: '', physicianInfo: '',
+    conditional: Object.fromEntries(mhConditionalQuestions.map(q => [q.key, { yes: false, detail: '' }])),
+    conditions: Object.fromEntries(mhConditionItems.map(c => [c.key, false])),
+  });
+
+  const patients = [
+    { id: 'P-00142', name: 'Maria Santos', dob: '1994-03-12', sex: 'F', height: '160 cm', weight: '54 kg', occupation: 'Sales associate',
+      contact: '0917-234-5678', address: '21 Rizal St., Brgy. San Isidro', allergies: ['Penicillin'], notes: '', lastVisit: '2026-06-14',
+      medicalHistory: { ...blankHistory(), allergy: true },
+      medicalQuestionnaire: blankQuestionnaire(),
+      chart: { 16: 'restored', 46: 'treatment' },
+      prescription: [{ name: 'Clindamycin 300mg', dosage: '1 capsule every 8 hours', instructions: 'Penicillin-allergy alternative. Take with food for 7 days.' }],
+      consents: {},
+      visits: [{ date: '2026-06-14', summary: 'Prophylaxis (cleaning) + charting update. Tooth 16 restoration confirmed; tooth 46 flagged for extraction next visit.' }] },
+    { id: 'P-00098', name: 'Jomar Dela Cruz', dob: '1988-11-02', sex: 'M', height: '168 cm', weight: '70 kg', occupation: 'Tricycle driver',
+      contact: '0920-555-1122', address: '14 Mabini Ave.', allergies: [], notes: '', lastVisit: '2026-05-30',
+      medicalHistory: blankHistory(),
+      medicalQuestionnaire: blankQuestionnaire(),
+      chart: {}, prescription: [], consents: {}, visits: [{ date: '2026-05-30', summary: 'Routine checkup, no treatment needed.' }] },
+    { id: 'P-00201', name: 'Kim Bautista', dob: '2001-07-19', sex: 'F', height: '155 cm', weight: '48 kg', occupation: 'Student',
+      contact: '0995-888-4321', address: '8 Aguinaldo St.', allergies: ['Latex'], notes: '', lastVisit: null,
+      medicalHistory: { ...blankHistory(), allergy: true },
+      medicalQuestionnaire: blankQuestionnaire(),
+      chart: {}, prescription: [], consents: {}, visits: [] },
+    { id: 'P-00076', name: 'Ronald Yap', dob: '1979-01-25', sex: 'M', height: '172 cm', weight: '80 kg', occupation: 'Civil engineer',
+      contact: '0918-777-9090', address: '55 Bonifacio Rd.', allergies: [], notes: 'Bruxism (teeth grinding).', lastVisit: '2026-07-02',
+      medicalHistory: { ...blankHistory(), highBloodPressure: true },
+      medicalQuestionnaire: {
+        lastPhysicalExam: 'March 2026', physicianInfo: 'Dr. R. Villanueva — SOCSARGEN County Hospital, (083) 552-9012',
+        conditional: {
+          underCare: { yes: true, detail: 'Hypertension maintenance — Losartan 50mg once daily' },
+          seriousIllness: { yes: false, detail: '' },
+          hospitalized: { yes: false, detail: '' },
+        },
+        conditions: { ...blankQuestionnaire().conditions, cardiovascularDisease: true },
+      },
+      chart: { 36: 'treatment' }, prescription: [], consents: {}, visits: [{ date: '2026-07-02', summary: 'Charting update — tooth 36 flagged for filling.' }] },
+    { id: 'P-00159', name: 'Ella Marquez', dob: '1996-09-08', sex: 'F', height: '158 cm', weight: '52 kg', occupation: 'Teacher',
+      contact: '0933-222-6789', address: '3 Luna St.', allergies: ['Sulfa drugs'], notes: '', lastVisit: '2026-06-28',
+      medicalHistory: { ...blankHistory(), allergy: true },
+      medicalQuestionnaire: blankQuestionnaire(),
+      chart: {}, prescription: [], consents: {}, visits: [{ date: '2026-06-28', summary: 'Routine cleaning.' }] },
+    { id: 'P-00184', name: 'Patrick Uy', dob: '1990-04-30', sex: 'M', height: '175 cm', weight: '85 kg', occupation: 'Business owner',
+      contact: '0977-345-1290', address: '70 Quezon Blvd.', allergies: [], notes: '', lastVisit: '2026-07-10',
+      medicalHistory: { ...blankHistory(), diabetes: true },
+      medicalQuestionnaire: blankQuestionnaire(),
+      chart: {}, prescription: [], consents: {}, visits: [{ date: '2026-07-10', summary: 'Consultation for wisdom tooth pain.' }] },
+  ];
+
+  let inventory = [
+    { id: 1, name: 'Cotton rolls', category: 'Consumable', qty: 42, unit: 'box', threshold: 10 },
+    { id: 2, name: 'Anesthetic cartridges (Lidocaine 2%)', category: 'Medicine', qty: 12, unit: 'box', threshold: 15 },
+    { id: 3, name: 'Gauze pads (2×2)', category: 'Consumable', qty: 60, unit: 'pack', threshold: 20 },
+    { id: 4, name: 'Dental cement (GIC)', category: 'Material', qty: 8, unit: 'unit', threshold: 10 },
+    { id: 5, name: 'Composite resin (A2 shade)', category: 'Material', qty: 14, unit: 'unit', threshold: 6 },
+    { id: 6, name: 'Disposable bibs', category: 'Consumable', qty: 150, unit: 'pcs', threshold: 50 },
+    { id: 7, name: 'Nitrile gloves (M)', category: 'Consumable', qty: 6, unit: 'box', threshold: 10 },
+    { id: 8, name: 'Surgical masks', category: 'Consumable', qty: 80, unit: 'box', threshold: 20 },
+    { id: 9, name: 'Amoxicillin 500mg', category: 'Medicine', qty: 120, unit: 'pcs', threshold: 30 },
+    { id: 10, name: 'Mefenamic Acid 500mg', category: 'Medicine', qty: 95, unit: 'pcs', threshold: 30 },
+    { id: 11, name: 'Clindamycin 300mg', category: 'Medicine', qty: 24, unit: 'pcs', threshold: 30 },
+    { id: 12, name: 'Paracetamol 500mg', category: 'Medicine', qty: 200, unit: 'pcs', threshold: 50 },
+  ];
+
+  let payments = [
+    { date: '2026-07-24', patient: 'Patrick Uy', amount: 1500, mode: 'Cash', ref: '' },
+    { date: '2026-07-22', patient: 'Ella Marquez', amount: 2200, mode: 'GCash', ref: 'GC-88213456' },
+    { date: '2026-07-20', patient: 'Ronald Yap', amount: 3500, mode: 'Bank transfer', ref: 'BPI-0092231' },
+    { date: '2026-06-14', patient: 'Maria Santos', amount: 1800, mode: 'GCash', ref: 'GC-77120098' },
+  ];
+
+  const employees = [
+    { id: 1, name: 'Dr. Elaine Joy Ampodia', role: 'Dentist', clockedIn: false },
+    { id: 2, name: 'Liza Ramos', role: 'Front desk', clockedIn: false },
+    { id: 3, name: 'Karen Bilog', role: 'Dental assistant', clockedIn: false },
+    { id: 4, name: 'Noel Tan', role: 'Front desk (part-time)', clockedIn: false },
+  ];
+  let scanCursor = 0;
+
+  let attendanceLog = [
+    { date: '2026-07-25', employee: 'Dr. Elaine Joy Ampodia', timeIn: '8:58 AM', timeOut: '5:32 PM', status: 'On time', method: 'Face scan' },
+    { date: '2026-07-25', employee: 'Liza Ramos', timeIn: '9:14 AM', timeOut: '5:20 PM', status: 'Late', method: 'Face scan' },
+    { date: '2026-07-25', employee: 'Karen Bilog', timeIn: '8:50 AM', timeOut: '5:29 PM', status: 'On time', method: 'Face scan' },
+    { date: '2026-07-24', employee: 'Noel Tan', timeIn: '—', timeOut: '—', status: 'Absent', method: '—' },
+  ];
+
+  let currentPatientId = patients[0].id;
+  let currentRx = [];
+
+  /* ---------------- Helpers ---------------- */
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+  const peso = (n) => '₱' + Number(n).toLocaleString('en-PH');
+  const initials = (name) => name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const findPatient = (id) => patients.find(p => p.id === id);
+  const age = (dob) => {
+    const d = new Date(dob), ref = new Date('2026-07-26');
+    let a = ref.getFullYear() - d.getFullYear();
+    if (ref.getMonth() < d.getMonth() || (ref.getMonth() === d.getMonth() && ref.getDate() < d.getDate())) a--;
+    return a;
+  };
+  const fmtDate = (iso) => iso ? new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+
+  function showToast(message, tone) {
+    tone = tone || 'default';
+    const colors = {
+      default: 'bg-tealdeep text-white',
+      good: 'bg-[#0ca30c] text-white',
+      warn: 'bg-[#c1852b] text-white',
+    };
+    const el = document.createElement('div');
+    el.className = 'toast rounded-xl px-4 py-3 text-[13px] shadow-lg ' + (colors[tone] || colors.default);
+    el.textContent = message;
+    $('#toast-container').appendChild(el);
+    setTimeout(() => {
+      el.style.transition = 'opacity .25s ease, transform .25s ease';
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(12px)';
+      setTimeout(() => el.remove(), 260);
+    }, 3000);
+  }
+
+  function openModal(id) { $(id).classList.remove('hidden'); }
+  function closeModal(id) { $(id).classList.add('hidden'); }
+
+  /* ---------------- Nav ---------------- */
+  const panelMeta = {
+    registration: { title: 'Patient Registration', tag: 'Front desk', sub: "New patients scan the queue number's QR code to register themselves; staff can pull up a returning patient instead of re-entering their details." },
+    dentist: { title: 'Dentist Portal', tag: 'Dentist', sub: 'Full visit history, tap-based charting, and quick-select prescriptions — built for the chairside, not the keyboard.' },
+    inventory: { title: 'Inventory — Dental Supplies', tag: 'Front desk · Dentist', sub: 'On-hand quantities for materials, consumables, and basic medicines, with alerts before anything runs out.' },
+    payments: { title: 'Payments', tag: 'Front desk', sub: 'Log what was paid and how — cash, GCash, or bank transfer are recorded here, never processed live.' },
+    attendance: { title: 'Staff Attendance', tag: 'Admin · Staff', sub: 'Facial recognition clocks staff in and out at a kiosk; a manual fallback keeps the log moving if a scan fails.' },
+    analytics: { title: 'Analytics & Reporting', tag: 'Admin', sub: 'One screen summarizing visits, revenue, treatments, inventory, and attendance for the owner to check at a glance.' },
+  };
+
+  function switchPanel(name) {
+    Object.keys(panelMeta).forEach(k => $('#panel-' + k).classList.toggle('hidden', k !== name));
+    $$('.nav-item').forEach(b => b.dataset.active = String(b.dataset.target === name));
+    const meta = panelMeta[name];
+    $('#header-title').textContent = meta.title;
+    $('#header-tag').textContent = meta.tag;
+    $('#header-sub').textContent = meta.sub;
+    $('#panel-' + name).classList.remove('panel');
+    void $('#panel-' + name).offsetWidth;
+    $('#panel-' + name).classList.add('panel');
+  }
+  $$('.nav-item').forEach(btn => btn.addEventListener('click', () => { switchPanel(btn.dataset.target); closeSidebar(); }));
+
+  /* ---------------- Mobile sidebar drawer ---------------- */
+  function openSidebar() { $('#sidebar').classList.remove('-translate-x-full'); $('#sidebar-backdrop').classList.remove('hidden'); }
+  function closeSidebar() { $('#sidebar').classList.add('-translate-x-full'); $('#sidebar-backdrop').classList.add('hidden'); }
+  $('#btn-menu').addEventListener('click', openSidebar);
+  $('#sidebar-backdrop').addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSidebar(); });
+
+  /* ---------------- Registration ---------------- */
+  function renderPatientTable(filter) {
+    filter = (filter || '').toLowerCase();
+    const rows = patients.filter(p => p.name.toLowerCase().includes(filter) || p.id.toLowerCase().includes(filter));
+    $('#patient-table-body').innerHTML = rows.map(p => `
+      <tr>
+        <td class="py-2.5 font-medium">${p.name}</td>
+        <td class="py-2.5 font-mono text-inkmuted">${p.id}</td>
+        <td class="py-2.5 font-mono text-inkmuted">${p.contact}</td>
+        <td class="py-2.5 text-inkmuted">${p.lastVisit ? fmtDate(p.lastVisit) : 'New patient'}</td>
+        <td class="py-2.5">${p.allergies.length ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-cariessoft text-caries">${p.allergies.join(', ')}</span>` : '<span class="text-inkfaint">—</span>'}</td>
+        <td class="py-2.5 text-right"><button data-open="${p.id}" class="open-record text-[12.5px] font-medium text-tealdeep2 hover:text-tealdeep">Open record →</button></td>
+      </tr>`).join('');
+    $$('.open-record').forEach(b => b.addEventListener('click', () => {
+      currentPatientId = b.dataset.open;
+      switchPanel('dentist');
+      renderDentistPanel();
+      showToast(`Opened ${findPatient(currentPatientId).name}'s record.`);
+    }));
+  }
+  $('#patient-search').addEventListener('input', (e) => renderPatientTable(e.target.value));
+
+  function ynRow(key, label, extraCls) {
+    return `<div class="flex items-center justify-between gap-3 ${extraCls || 'py-2'}">
+      <span class="text-[12.5px] text-inkmuted">${label}</span>
+      <div class="flex rounded-full border border-line overflow-hidden shrink-0">
+        <button type="button" class="yn2 px-3 py-1 text-[11.5px] font-medium" data-key="${key}" data-val="yes" data-active="false">Yes</button>
+        <button type="button" class="yn2 px-3 py-1 text-[11.5px] font-medium border-l border-line" data-key="${key}" data-val="no" data-active="true">No</button>
+      </div>
+    </div>`;
+  }
+  function wireYesNo(container, onToggle) {
+    container.querySelectorAll('.yn2').forEach(btn => btn.addEventListener('click', () => {
+      const key = btn.dataset.key, val = btn.dataset.val;
+      container.querySelectorAll(`.yn2[data-key="${key}"]`).forEach(b => { b.dataset.active = String(b.dataset.val === val); });
+      if (onToggle) onToggle(key, val === 'yes');
+    }));
+  }
+  const ynIsYes = (container, key) => container.querySelector(`.yn2[data-key="${key}"][data-val="yes"]`).dataset.active === 'true';
+
+  function renderIntakeMedHistory() {
+    $('#in-medhistory').innerHTML = medicalHistoryItems.map(m => ynRow(m.key, m.label)).join('');
+    wireYesNo($('#in-medhistory'), (key, yes) => {
+      if (key === 'allergy') $('#in-allergy-detail-wrap').classList.toggle('hidden', !yes);
+    });
+  }
+
+  function renderMhConditional() {
+    $('#mh-conditional').innerHTML = mhConditionalQuestions.map(q => `
+      <div>
+        ${ynRow(q.key, q.question, 'py-0')}
+        <label data-detail-for="${q.key}" class="hidden block text-[12px] mt-2">
+          <span class="text-inkmuted">${q.detailLabel}</span>
+          <input type="text" data-detail-input="${q.key}" class="mt-1 w-full rounded-lg border border-line px-3 py-1.5 text-[13px] focus:border-tealmid outline-none" />
+        </label>
+      </div>`).join('');
+    wireYesNo($('#mh-conditional'), (key, yes) => {
+      $(`[data-detail-for="${key}"]`).classList.toggle('hidden', !yes);
+    });
+  }
+
+  function renderMhConditions() {
+    $('#mh-conditions').innerHTML = mhConditionItems.map(c => ynRow(c.key, c.label)).join('');
+    wireYesNo($('#mh-conditions'));
+  }
+
+  $('#form-intake').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const first = $('#in-firstname').value.trim();
+    const last = $('#in-lastname').value.trim();
+    const name = [first, last].filter(Boolean).join(' ') || 'New Patient';
+    const newId = 'P-' + String(200 + patients.length).padStart(5, '0');
+    const medicalHistory = blankHistory();
+    medicalHistoryItems.forEach(m => { medicalHistory[m.key] = ynIsYes($('#in-medhistory'), m.key); });
+    const allergies = medicalHistory.allergy ? $('#in-allergy-detail').value.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+    const medicalQuestionnaire = blankQuestionnaire();
+    medicalQuestionnaire.lastPhysicalExam = $('#mh-lastexam').value.trim();
+    medicalQuestionnaire.physicianInfo = $('#mh-physician').value.trim();
+    mhConditionalQuestions.forEach(q => {
+      const detailInput = $(`[data-detail-input="${q.key}"]`);
+      medicalQuestionnaire.conditional[q.key] = { yes: ynIsYes($('#mh-conditional'), q.key), detail: detailInput ? detailInput.value.trim() : '' };
+    });
+    mhConditionItems.forEach(c => { medicalQuestionnaire.conditions[c.key] = ynIsYes($('#mh-conditions'), c.key); });
+
+    patients.unshift({
+      id: newId, name,
+      dob: $('#in-birthday').value || '2000-01-01',
+      sex: $('#in-sex').value,
+      height: $('#in-height').value.trim() || '—',
+      weight: $('#in-weight').value.trim() || '—',
+      occupation: $('#in-occupation').value.trim() || '—',
+      contact: $('#in-contact').value.trim() || '—',
+      address: $('#in-address').value.trim() || '—',
+      allergies, notes: '', lastVisit: null,
+      medicalHistory, medicalQuestionnaire,
+      chart: {}, prescription: [], consents: {}, visits: [],
+    });
+    renderPatientTable($('#patient-search').value);
+    populatePatientSelects();
+    e.target.reset();
+    renderIntakeMedHistory();
+    renderMhConditional();
+    renderMhConditions();
+    $('#in-allergy-detail-wrap').classList.add('hidden');
+    showToast(`Saved ${name} as ${newId}.`, 'good');
+  });
+
+  /* ---------------- Dentist Portal ---------------- */
+  function populatePatientSelects() {
+    const opts = patients.map(p => `<option value="${p.id}">${p.name} — ${p.id}</option>`).join('');
+    $('#payment-patient').innerHTML = opts;
+    $('#print-patient').innerHTML = opts;
+    syncPatientSearchInput();
+  }
+
+  function syncPatientSearchInput() {
+    const p = findPatient(currentPatientId);
+    if (p) $('#dentist-patient-search').value = `${p.name} — ${p.id}`;
+  }
+
+  function renderPatientResults(filter) {
+    filter = (filter || '').toLowerCase();
+    const matches = patients.filter(p => p.name.toLowerCase().includes(filter) || p.id.toLowerCase().includes(filter));
+    const box = $('#dentist-patient-results');
+    box.innerHTML = matches.length
+      ? matches.map(p => `
+        <button type="button" data-select-patient="${p.id}" class="w-full text-left px-3 py-2 text-[13px] hover:bg-plane flex items-center justify-between gap-3 ${p.id === currentPatientId ? 'bg-tealdeep/5' : ''}">
+          <span class="font-medium">${p.name}</span>
+          <span class="font-mono text-[11.5px] text-inkfaint">${p.id}</span>
+        </button>`).join('')
+      : `<p class="px-3 py-3 text-[12.5px] text-inkfaint italic">No patient matches "${filter}".</p>`;
+    box.classList.remove('hidden');
+    $$('#dentist-patient-results [data-select-patient]').forEach(b => b.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      currentPatientId = b.dataset.selectPatient;
+      renderDentistPanel();
+      box.classList.add('hidden');
+    }));
+  }
+
+  $('#dentist-patient-search').addEventListener('focus', (e) => { e.target.select(); renderPatientResults(''); });
+  $('#dentist-patient-search').addEventListener('input', (e) => renderPatientResults(e.target.value));
+  $('#dentist-patient-search').addEventListener('blur', () => setTimeout(() => {
+    $('#dentist-patient-results').classList.add('hidden');
+    syncPatientSearchInput();
+  }, 120));
+  $('#dentist-patient-search').addEventListener('keydown', (e) => { if (e.key === 'Escape') { $('#dentist-patient-results').classList.add('hidden'); e.target.blur(); } });
+
+  const toothLabel = { treatment: 'Needs treatment', restored: 'Restored / existing work' };
+  const nextState = { healthy: 'treatment', treatment: 'restored', restored: 'healthy' };
+
+  // FDI notation, matching the clinic's own paper chart: quadrants 1/2 = upper permanent,
+  // 5/6 = upper temporary, 3/4 = lower permanent (mirrored), 7/8 = lower temporary.
+  const upperTemp = [55, 54, 53, 52, 51, 61, 62, 63, 64, 65];
+  const upperPerm = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
+  const lowerPerm = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
+  const lowerTemp = [85, 84, 83, 82, 81, 71, 72, 73, 74, 75];
+
+  function buildRow(containerId, teeth, small) {
+    const el = $(containerId);
+    const gapAfter = teeth.length / 2 - 1;
+    el.innerHTML = teeth.map((n, i) => {
+      const gapCls = i === gapAfter + 1 ? 'tooth-gap' : '';
+      return `<button type="button" class="tooth ${small ? 'tooth-sm' : ''} ${gapCls}" data-tooth="${n}"><span>${n}</span></button>`;
+    }).join('');
+  }
+
+  function renderOdontogram(patient) {
+    buildRow('#arch-upper-temp', upperTemp, true);
+    buildRow('#arch-upper-perm', upperPerm, false);
+    buildRow('#arch-lower-perm', lowerPerm, false);
+    buildRow('#arch-lower-temp', lowerTemp, true);
+    $$('.tooth').forEach(t => {
+      const n = t.dataset.tooth;
+      const st = patient.chart[n] || 'healthy';
+      t.dataset.state = st;
+      t.addEventListener('click', () => {
+        const cur = t.dataset.state || 'healthy';
+        const nxt = nextState[cur];
+        t.dataset.state = nxt;
+        if (nxt === 'healthy') delete patient.chart[n]; else patient.chart[n] = nxt;
+        renderTreatmentPlan(patient);
+      });
+    });
+    renderTreatmentPlan(patient);
+  }
+
+  function renderTreatmentPlan(patient) {
+    const entries = Object.entries(patient.chart);
+    $('#treatment-plan').innerHTML = entries.map(([n, st]) => {
+      const consent = patient.consents[n];
+      let action = '';
+      if (st === 'treatment') {
+        action = consent
+          ? `<span class="text-[11.5px] text-[#0a7d0a]">✓ Extraction consent signed</span>`
+          : `<button type="button" data-flag-tooth="${n}" class="flag-extraction text-[11.5px] font-medium text-tealdeep2 hover:text-tealdeep">Flag for extraction →</button>`;
+      }
+      return `
+      <li class="flex items-center justify-between gap-3">
+        <span>Tooth <span class="font-mono font-medium">${n}</span> — ${toothLabel[st]}</span>
+        <span class="flex items-center gap-2.5 shrink-0">
+          ${action}
+          <span class="w-2.5 h-2.5 rounded-full ${st === 'treatment' ? 'bg-caries' : 'bg-restoration'} inline-block"></span>
+        </span>
+      </li>`;
+    }).join('');
+    $('#treatment-plan-empty').classList.toggle('hidden', entries.length > 0);
+    $$('.flag-extraction').forEach(b => b.addEventListener('click', () => openConsentModal(patient.id, b.dataset.flagTooth)));
+  }
+
+  function renderRxList() {
+    $('#rx-list').innerHTML = currentRx.map((m, i) => `
+      <li class="flex items-start justify-between gap-3 bg-plane rounded-lg px-3 py-2.5">
+        <div>
+          <p class="font-medium text-[13px]">${m.name}</p>
+          <p class="text-[12px] text-inkmuted">${m.dosage} — ${m.instructions}</p>
+        </div>
+        <button data-rm="${i}" class="rm-rx text-inkfaint hover:text-caries text-[16px] leading-none px-1">×</button>
+      </li>`).join('');
+    $('#rx-empty').classList.toggle('hidden', currentRx.length > 0);
+    $('#rx-count').textContent = currentRx.length ? currentRx.length + ' item' + (currentRx.length > 1 ? 's' : '') : '';
+    $$('.rm-rx').forEach(b => b.addEventListener('click', () => { currentRx.splice(Number(b.dataset.rm), 1); renderRxList(); }));
+  }
+
+  const allergyConflicts = { penicillin: ['amoxicillin'] };
+  function conflictingAllergy(patient, medName) {
+    const med = medName.toLowerCase();
+    return patient.allergies.find(a => {
+      const key = a.toLowerCase();
+      return med.includes(key) || (allergyConflicts[key] || []).some(x => med.includes(x));
+    });
+  }
+  function addToRx(med) {
+    const patient = findPatient(currentPatientId);
+    const hit = conflictingAllergy(patient, med.name);
+    currentRx.push({ ...med });
+    renderRxList();
+    if (hit) showToast(`⚠ ${patient.name} is allergic to ${hit} — double-check ${med.name} before prescribing.`, 'warn');
+  }
+
+  function renderQuickMeds() {
+    const patient = findPatient(currentPatientId);
+    $('#quick-meds').innerHTML = quickMeds.map((m, i) => {
+      const hit = conflictingAllergy(patient, m.name);
+      const cls = hit ? 'border-caries/50 bg-cariessoft/60 text-[#7A2A21] hover:border-caries' : 'border-line hover:border-tealmid hover:bg-tealdeep/5';
+      return `<button type="button" data-med="${i}" title="${hit ? 'Allergy conflict: ' + hit : ''}" class="chip text-[12.5px] px-3 py-1.5 rounded-full border ${cls}">${hit ? '⚠ ' : '+ '}${m.name}</button>`;
+    }).join('');
+    $$('#quick-meds .chip').forEach(b => b.addEventListener('click', () => addToRx(quickMeds[Number(b.dataset.med)])));
+  }
+
+  function renderDentistPanel() {
+    const p = findPatient(currentPatientId);
+    syncPatientSearchInput();
+    $('#dp-avatar').textContent = initials(p.name);
+    $('#dp-name').textContent = p.name;
+    $('#dp-id').textContent = p.id;
+    $('#dp-age').textContent = age(p.dob) + ' yrs · ' + (p.sex || '—');
+    $('#dp-vitals').textContent = `${p.height || '—'} / ${p.weight || '—'}`;
+    $('#dp-occupation').textContent = p.occupation || '—';
+    $('#dp-contact').textContent = p.contact;
+    $('#dp-lastvisit').textContent = p.lastVisit ? fmtDate(p.lastVisit) : 'New patient';
+    $('#dp-allergies').innerHTML = p.allergies.length
+      ? p.allergies.map(a => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-cariessoft text-caries">${a}</span>`).join('')
+      : '<span class="text-[12px] text-inkfaint">None on file</span>';
+    const flags = medicalHistoryItems.filter(m => m.key !== 'allergy' && p.medicalHistory[m.key]);
+    const mq = p.medicalQuestionnaire;
+    const qFlags = mq ? mhConditionItems.filter(c => mq.conditions[c.key]) : [];
+    const qNotes = mq ? mhConditionalQuestions.filter(q => mq.conditional[q.key].yes) : [];
+    const badges = [
+      ...flags.map(m => m.label),
+      ...qFlags.map(c => c.label),
+    ].map(label => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-warnsoft text-[#8a5f1e]">${label}</span>`).join('');
+    const noteLines = [
+      p.notes,
+      ...qNotes.map(q => `${q.question} ${mq.conditional[q.key].detail ? '— ' + mq.conditional[q.key].detail : ''}`),
+    ].filter(Boolean).map(n => `<p class="w-full text-[12px] text-inkmuted mt-1.5">${n}</p>`).join('');
+    $('#dp-medflags').innerHTML = (badges || `<span class="text-[12px] text-inkfaint">None flagged on file</span>`) + noteLines;
+    $('#dp-history').innerHTML = p.visits.length
+      ? p.visits.slice().reverse().map(v => `<li><span class="font-mono text-inkfaint">${fmtDate(v.date)}</span><br>${v.summary}</li>`).join('')
+      : '<li class="text-inkfaint italic">No prior visits.</li>';
+    currentRx = [];
+    renderRxList();
+    renderOdontogram(p);
+    renderQuickMeds();
+  }
+
+  $('#add-custom-med').addEventListener('click', () => {
+    const name = $('#custom-med-name').value.trim();
+    if (!name) { showToast('Enter a medicine name first.', 'warn'); return; }
+    addToRx({
+      name,
+      dosage: $('#custom-med-dosage').value.trim() || 'As directed',
+      instructions: $('#custom-med-instructions').value.trim() || '—',
+    });
+    $('#custom-med-name').value = ''; $('#custom-med-dosage').value = ''; $('#custom-med-instructions').value = '';
+  });
+
+  $('#chart-clear').addEventListener('click', () => {
+    const p = findPatient(currentPatientId);
+    p.chart = {};
+    renderOdontogram(p);
+  });
+
+  $('#save-visit').addEventListener('click', () => {
+    const p = findPatient(currentPatientId);
+    const flagged = Object.keys(p.chart).length;
+    const summary = `Chart updated (${flagged} ${flagged === 1 ? 'tooth' : 'teeth'} flagged)` + (currentRx.length ? `; prescribed ${currentRx.map(m => m.name).join(', ')}.` : '.');
+    p.visits.push({ date: '2026-07-26', summary });
+    p.prescription = currentRx.slice();
+    p.lastVisit = '2026-07-26';
+    renderDentistPanel();
+    renderPatientTable($('#patient-search').value);
+    showToast(`Visit saved to ${p.name}'s record.`, 'good');
+  });
+
+  /* ---------------- Inventory ---------------- */
+  function statusOf(item) { return item.qty < item.threshold ? 'low' : 'ok'; }
+
+  function renderInventory(filter) {
+    filter = (filter || '').toLowerCase();
+    const rows = inventory.filter(i => i.name.toLowerCase().includes(filter));
+    $('#inventory-table-body').innerHTML = rows.map(i => {
+      const low = statusOf(i) === 'low';
+      return `<tr>
+        <td class="py-2.5 font-sans font-medium">${i.name}</td>
+        <td class="py-2.5 font-sans text-inkmuted">${i.category}</td>
+        <td class="py-2.5 text-right ${low ? 'text-critical font-medium' : ''}">${i.qty}</td>
+        <td class="py-2.5 text-inkmuted">${i.unit}</td>
+        <td class="py-2.5 text-right text-inkmuted">${i.threshold}</td>
+        <td class="py-2.5"><span class="font-sans text-[11px] px-2 py-0.5 rounded-full ${low ? 'bg-criticalsoft text-critical' : 'bg-goodsoft text-[#0a7d0a]'}">${low ? 'Low stock' : 'OK'}</span></td>
+      </tr>`;
+    }).join('');
+    $('#inv-stat-total').textContent = inventory.length;
+    $('#inv-stat-low').textContent = inventory.filter(i => statusOf(i) === 'low').length;
+    const lowCount = inventory.filter(i => statusOf(i) === 'low').length;
+    if ($('#an-stat-lowstock')) $('#an-stat-lowstock').textContent = lowCount;
+  }
+  $('#inventory-search').addEventListener('input', (e) => renderInventory(e.target.value));
+
+  let stockMode = 'in';
+
+  function stockRowMarkup(selectedId) {
+    const opts = inventory.map(i => `<option value="${i.id}" ${i.id === selectedId ? 'selected' : ''}>${i.name} (${i.qty} ${i.unit} on hand)</option>`).join('');
+    return `<div class="stock-row flex items-center gap-2">
+      <select class="stock-row-item flex-1 min-w-0 rounded-lg border border-line px-3 py-2 text-[13px] focus:border-tealmid outline-none">${opts}</select>
+      <input type="number" min="1" value="1" class="stock-row-qty w-20 rounded-lg border border-line px-2 py-2 text-[13px] text-center focus:border-tealmid outline-none" />
+      <button type="button" class="stock-row-remove text-inkfaint hover:text-caries text-[18px] leading-none px-1" title="Remove item">×</button>
+    </div>`;
+  }
+  function addStockRow(selectedId) {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = stockRowMarkup(selectedId);
+    const row = wrap.firstElementChild;
+    row.querySelector('.stock-row-remove').addEventListener('click', () => {
+      if ($$('#stock-modal-rows .stock-row').length > 1) row.remove();
+    });
+    $('#stock-modal-rows').appendChild(row);
+  }
+  function openStockModal(mode) {
+    stockMode = mode;
+    $('#stock-modal-title').textContent = mode === 'in' ? 'Stock in' : 'Stock out';
+    $('#stock-modal-confirm').className = 'px-4 py-2 rounded-lg text-[13px] font-medium text-white ' + (mode === 'in' ? 'bg-tealdeep hover:bg-tealdeep2' : 'bg-critical hover:bg-[#a12f2f]');
+    $('#stock-modal-rows').innerHTML = '';
+    addStockRow();
+    openModal('#modal-stock');
+  }
+  $('#btn-stock-in').addEventListener('click', () => openStockModal('in'));
+  $('#btn-stock-out').addEventListener('click', () => openStockModal('out'));
+  $('#stock-modal-add-row').addEventListener('click', () => addStockRow());
+  $('#stock-modal-cancel').addEventListener('click', () => closeModal('#modal-stock'));
+  $('#stock-modal-confirm').addEventListener('click', () => {
+    const rows = $$('#stock-modal-rows .stock-row');
+    const parts = rows.map(row => {
+      const id = Number(row.querySelector('.stock-row-item').value);
+      const qty = Math.max(1, Number(row.querySelector('.stock-row-qty').value) || 1);
+      const item = inventory.find(i => i.id === id);
+      if (stockMode === 'in') item.qty += qty; else item.qty = Math.max(0, item.qty - qty);
+      return `${qty} ${item.unit} — ${item.name}`;
+    });
+    renderInventory($('#inventory-search').value);
+    closeModal('#modal-stock');
+    const verb = stockMode === 'in' ? 'Added' : 'Deducted';
+    showToast(`${verb} stock for ${parts.length} item${parts.length > 1 ? 's' : ''}: ${parts.join(', ')}`, stockMode === 'in' ? 'good' : 'default');
+  });
+
+  /* ---------------- Payments ---------------- */
+  function renderPaymentHistory() {
+    $('#payment-table-body').innerHTML = payments.map(p => `
+      <tr>
+        <td class="py-2.5">${fmtDate(p.date)}</td>
+        <td class="py-2.5 font-sans font-medium">${p.patient}</td>
+        <td class="py-2.5 text-right">${peso(p.amount)}</td>
+        <td class="py-2.5">${p.mode}</td>
+        <td class="py-2.5 text-inkfaint">${p.ref || '—'}</td>
+      </tr>`).join('');
+  }
+
+  $$('#payment-mode-group .mode-option').forEach(label => {
+    label.addEventListener('click', () => {
+      $$('#payment-mode-group .mode-option').forEach(l => l.classList.remove('bg-tealdeep', 'text-white', 'border-tealdeep'));
+      label.classList.add('bg-tealdeep', 'text-white', 'border-tealdeep');
+      const mode = label.querySelector('input').value;
+      $('#payment-ref-wrap').classList.toggle('hidden', mode === 'Cash');
+    });
+  });
+  $$('#payment-mode-group .mode-option')[0].classList.add('bg-tealdeep', 'text-white', 'border-tealdeep');
+
+  $('#form-payment').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const patientName = findPatient($('#payment-patient').value)?.name || '—';
+    const amount = Number($('#payment-amount').value) || 0;
+    const mode = document.querySelector('#payment-mode-group input:checked').value;
+    const ref = $('#payment-ref').value.trim();
+    payments.unshift({ date: '2026-07-26', patient: patientName, amount, mode, ref });
+    renderPaymentHistory();
+    e.target.reset();
+    $('#payment-ref-wrap').classList.add('hidden');
+    $$('#payment-mode-group .mode-option').forEach(l => l.classList.remove('bg-tealdeep', 'text-white', 'border-tealdeep'));
+    $$('#payment-mode-group .mode-option')[0].classList.add('bg-tealdeep', 'text-white', 'border-tealdeep');
+    showToast(`Recorded ${peso(amount)} from ${patientName} (${mode}).`, 'good');
+  });
+
+  function renderPrintPreview() {
+    const p = findPatient($('#print-patient').value);
+    const rx = p.prescription || [];
+    if (!rx.length) {
+      $('#print-preview-inline').innerHTML = `No saved prescription for ${p.name} yet. Add one in the Dentist Portal first.`;
+      return;
+    }
+    $('#print-preview-inline').innerHTML = `<span class="text-ink font-medium">${p.name}</span> — ${rx.length} medicine${rx.length > 1 ? 's' : ''} ready to print.`;
+  }
+  $('#print-patient').addEventListener('change', renderPrintPreview);
+
+  $('#btn-open-print').addEventListener('click', () => {
+    const p = findPatient($('#print-patient').value);
+    const rx = p.prescription || [];
+    if (!rx.length) { showToast(`${p.name} has no saved prescription yet.`, 'warn'); return; }
+    $('#print-body').innerHTML = `
+      <div class="flex justify-between text-[12.5px] text-inkmuted mb-1">
+        <span>Patient: <span class="text-ink font-medium">${p.name}</span></span>
+        <span>${p.id}</span>
+      </div>
+      <div class="text-[12.5px] text-inkmuted mb-4">${age(p.dob)} yrs old${p.allergies.length ? ' · Allergies: ' + p.allergies.join(', ') : ''}</div>
+      <ol class="space-y-2.5 list-decimal list-inside">
+        ${rx.map(m => `<li><span class="font-medium">${m.name}</span> — ${m.dosage}<div class="text-[12px] text-inkmuted pl-5">${m.instructions}</div></li>`).join('')}
+      </ol>`;
+    openModal('#modal-print');
+  });
+  $('#print-close').addEventListener('click', () => closeModal('#modal-print'));
+  $('#print-go').addEventListener('click', () => window.print());
+
+  /* ---------------- Extraction consent ---------------- */
+  let consentPatientId = null, consentTooth = null;
+  const sigCanvas = $('#consent-signature');
+  const sigCtx = sigCanvas.getContext('2d');
+  let sigDrawing = false, hasSignature = false;
+
+  function sigPos(e) {
+    const r = sigCanvas.getBoundingClientRect();
+    const t = e.touches && e.touches[0];
+    const clientX = t ? t.clientX : e.clientX, clientY = t ? t.clientY : e.clientY;
+    return { x: (clientX - r.left) * sigCanvas.width / r.width, y: (clientY - r.top) * sigCanvas.height / r.height };
+  }
+  function sigStart(e) { sigDrawing = true; hasSignature = true; const p = sigPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); e.preventDefault(); }
+  function sigMove(e) {
+    if (!sigDrawing) return;
+    const p = sigPos(e);
+    sigCtx.strokeStyle = '#17262A'; sigCtx.lineWidth = 2; sigCtx.lineCap = 'round';
+    sigCtx.lineTo(p.x, p.y); sigCtx.stroke();
+    e.preventDefault();
+  }
+  function sigEnd() { sigDrawing = false; }
+  sigCanvas.addEventListener('mousedown', sigStart);
+  sigCanvas.addEventListener('mousemove', sigMove);
+  window.addEventListener('mouseup', sigEnd);
+  sigCanvas.addEventListener('touchstart', sigStart, { passive: false });
+  sigCanvas.addEventListener('touchmove', sigMove, { passive: false });
+  sigCanvas.addEventListener('touchend', sigEnd);
+  $('#consent-sig-clear').addEventListener('click', () => { sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height); hasSignature = false; });
+
+  function openConsentModal(patientId, tooth) {
+    consentPatientId = patientId; consentTooth = tooth;
+    const p = findPatient(patientId);
+    $('#consent-patient').textContent = p.name;
+    $('#consent-tooth').textContent = tooth;
+    $('#consent-checkbox-tooth').textContent = tooth;
+    $('#consent-date').textContent = 'Sun, Jul 26, 2026';
+    $('#consent-printed-name').value = p.name;
+    $('#consent-guardian').value = '';
+    $('#consent-checkbox').checked = false;
+    $('#consent-confirm').disabled = true;
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    hasSignature = false;
+    openModal('#modal-consent');
+  }
+  $('#consent-checkbox').addEventListener('change', (e) => { $('#consent-confirm').disabled = !e.target.checked; });
+  $('#consent-cancel').addEventListener('click', () => closeModal('#modal-consent'));
+  $('#consent-confirm').addEventListener('click', () => {
+    const p = findPatient(consentPatientId);
+    p.consents[consentTooth] = { date: '2026-07-26', signedBy: $('#consent-printed-name').value.trim() || p.name, hasSignature };
+    closeModal('#modal-consent');
+    if (p.id === currentPatientId) renderTreatmentPlan(p);
+    showToast(`Extraction consent signed for tooth ${consentTooth}.`, 'good');
+  });
+
+  /* ---------------- Attendance ---------------- */
+  function statusForTime(timeIn) {
+    if (timeIn === '—') return 'Absent';
+    const match = timeIn.match(/(\d+):(\d+)\s*(AM|PM)/);
+    if (!match) return 'On time';
+    let h = Number(match[1]) % 12; if (match[3] === 'PM') h += 12;
+    const mins = h * 60 + Number(match[2]);
+    return mins > 9 * 60 ? 'Late' : 'On time';
+  }
+
+  function renderAttendance() {
+    $('#attendance-table-body').innerHTML = attendanceLog.map(r => {
+      const badge = r.status === 'On time' ? 'bg-goodsoft text-[#0a7d0a]' : r.status === 'Late' ? 'bg-warnsoft text-[#8a5f1e]' : 'bg-criticalsoft text-critical';
+      return `<tr>
+        <td class="py-2.5">${r.date}</td>
+        <td class="py-2.5 font-sans font-medium">${r.employee}</td>
+        <td class="py-2.5">${r.timeIn}</td>
+        <td class="py-2.5">${r.timeOut}</td>
+        <td class="py-2.5 font-sans text-inkmuted">${r.method}</td>
+        <td class="py-2.5"><span class="font-sans text-[11px] px-2 py-0.5 rounded-full ${badge}">${r.status}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function nowTimeString() {
+    const d = new Date();
+    let h = d.getHours(), m = d.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
+  }
+
+  function logClock(employee, method) {
+    const today = attendanceLog.find(r => r.employee === employee.name && r.date === '2026-07-26');
+    const t = nowTimeString();
+    if (employee.clockedIn && today) {
+      today.timeOut = t;
+      employee.clockedIn = false;
+      return { action: 'out', time: t };
+    } else {
+      attendanceLog.unshift({ date: '2026-07-26', employee: employee.name, timeIn: t, timeOut: '—', status: statusForTime(t), method });
+      employee.clockedIn = true;
+      return { action: 'in', time: t };
+    }
+  }
+
+  $('#btn-scan').addEventListener('click', () => {
+    const frame = $('#scan-frame'), btn = $('#btn-scan');
+    frame.classList.add('scanning');
+    btn.disabled = true;
+    $('#scan-status').textContent = 'Scanning…';
+    setTimeout(() => {
+      frame.classList.remove('scanning');
+      btn.disabled = false;
+      const employee = employees[scanCursor % employees.length];
+      scanCursor++;
+      const result = logClock(employee, 'Face scan');
+      $('#scan-status').textContent = `Matched — ${employee.name}`;
+      renderAttendance();
+      showToast(`Clocked ${result.action === 'in' ? 'in' : 'out'} — ${employee.name} — ${result.time}`, 'good');
+      setTimeout(() => { $('#scan-status').textContent = 'Ready to scan'; }, 2400);
+    }, 1500);
+  });
+
+  $('#btn-enroll').addEventListener('click', () => showToast('Reference photo captured — employee added to the match list.'));
+
+  function populateEmployeeSelect() {
+    $('#manual-employee').innerHTML = employees.map(e => `<option value="${e.id}">${e.name} — ${e.role}</option>`).join('');
+  }
+
+  $('#btn-manual-log').addEventListener('click', () => {
+    const emp = employees.find(e => e.id === Number($('#manual-employee').value));
+    if ($('#manual-pin').value !== '1234') {
+      showToast('Incorrect PIN — try again, or ask an admin to log it for you.', 'warn');
+      return;
+    }
+    const result = logClock(emp, 'Manual (PIN)');
+    renderAttendance();
+    $('#manual-pin').value = '';
+    showToast(`Logged ${result.action === 'in' ? 'time in' : 'time out'} for ${emp.name} — ${result.time} (manual).`, 'good');
+  });
+
+  $('#btn-export-attendance').addEventListener('click', () => {
+    const header = 'Date,Employee,Time In,Time Out,Method,Status\n';
+    const body = attendanceLog.map(r => [r.date, r.employee, r.timeIn, r.timeOut, r.method, r.status].join(',')).join('\n');
+    const blob = new Blob([header + body], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'attendance_2026-07-26.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('Exported attendance_2026-07-26.csv');
+  });
+
+  /* ---------------- Analytics (static demo bars, validated palette) ---------------- */
+  function renderBarChart(containerId, data, opts) {
+    opts = opts || {};
+    const max = Math.max(...data.map(d => d.value));
+    $(containerId).innerHTML = data.map(d => `
+      <div class="flex items-end h-full ${opts.horizontal ? '' : 'flex-1'} flex-col items-center gap-2" ${opts.horizontal ? '' : 'style="height:100%"'}>
+        <div class="w-full flex-1 flex items-end">
+          <div class="bar-rise w-full rounded-t-md" style="height:${(d.value / max * 100).toFixed(0)}%; background:${d.color || '#2a78d6'}"></div>
+        </div>
+        <span class="text-[10.5px] text-inkfaint font-mono">${d.label}</span>
+      </div>`).join('');
+  }
+
+  function renderHBars(containerId, data) {
+    const max = Math.max(...data.map(d => d.value));
+    $(containerId).innerHTML = data.map(d => `
+      <div>
+        <div class="flex items-center justify-between text-[12px] mb-1">
+          <span class="text-inkmuted">${d.label}</span>
+          <span class="font-mono text-inkfaint">${d.value}</span>
+        </div>
+        <div class="h-2 rounded-full bg-plane overflow-hidden">
+          <div class="bar-rise h-full rounded-full" style="width:${(d.value / max * 100).toFixed(0)}%; background:${d.color}"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderAnalytics() {
+    renderBarChart('#chart-visits', [
+      { label: 'Wk 1', value: 38 }, { label: 'Wk 2', value: 44 }, { label: 'Wk 3', value: 41 },
+      { label: 'Wk 4', value: 52 }, { label: 'Wk 5', value: 47 }, { label: 'Wk 6', value: 55 },
+    ]);
+
+    const weeks = [
+      { label: 'Wk 3', cash: 18000, gcash: 9000, bank: 6000 },
+      { label: 'Wk 4', cash: 21000, gcash: 12500, bank: 4000 },
+      { label: 'Wk 5', cash: 16000, gcash: 15000, bank: 8000 },
+      { label: 'Wk 6', cash: 24000, gcash: 11000, bank: 9500 },
+    ];
+    const maxWeek = Math.max(...weeks.map(w => w.cash + w.gcash + w.bank));
+    $('#chart-revenue').innerHTML = weeks.map(w => {
+      const total = w.cash + w.gcash + w.bank;
+      const scale = (v) => (v / maxWeek * 100).toFixed(1);
+      return `<div class="flex items-center gap-3">
+        <span class="text-[11px] font-mono text-inkfaint w-9 shrink-0">${w.label}</span>
+        <div class="flex-1 h-4 rounded-full overflow-hidden flex bg-plane" style="width:${scale(total)}%">
+          <div style="width:${(w.cash/total*100).toFixed(1)}%; background:#2a78d6"></div>
+          <div class="ml-[2px]" style="width:${(w.gcash/total*100).toFixed(1)}%; background:#eb6834"></div>
+          <div class="ml-[2px]" style="width:${(w.bank/total*100).toFixed(1)}%; background:#1baf7a"></div>
+        </div>
+        <span class="text-[11px] font-mono text-inkfaint w-16 text-right shrink-0">${peso(total)}</span>
+      </div>`;
+    }).join('');
+
+    renderHBars('#chart-treatments', [
+      { label: 'Routine cleaning', value: 64, color: '#2a78d6' },
+      { label: 'Filling', value: 41, color: '#2a78d6' },
+      { label: 'Checkup / consult', value: 38, color: '#2a78d6' },
+      { label: 'Extraction', value: 19, color: '#2a78d6' },
+      { label: 'Root canal', value: 8, color: '#2a78d6' },
+    ]);
+
+    renderHBars('#chart-prescriptions', [
+      { label: 'Amoxicillin 500mg', value: 52, color: '#2a78d6' },
+      { label: 'Mefenamic Acid 500mg', value: 37, color: '#2a78d6' },
+      { label: 'Paracetamol 500mg', value: 24, color: '#2a78d6' },
+      { label: 'Clindamycin 300mg', value: 15, color: '#2a78d6' },
+      { label: 'Ibuprofen 400mg', value: 9, color: '#2a78d6' },
+    ]);
+
+    const low = inventory.filter(i => statusOf(i) === 'low');
+    $('#an-low-stock-list').innerHTML = low.map(i => `
+      <li class="flex items-center justify-between">
+        <span>${i.name}</span>
+        <span class="font-mono text-[12px] px-2 py-0.5 rounded-full bg-criticalsoft text-critical">${i.qty} ${i.unit} left</span>
+      </li>`).join('') || '<li class="text-inkfaint italic">Nothing below threshold right now.</li>';
+    $('#an-stat-lowstock').textContent = low.length;
+  }
+
+  /* ---------------- Modal close on backdrop / Escape ---------------- */
+  ['#modal-stock', '#modal-print', '#modal-consent'].forEach(id => {
+    $(id).addEventListener('click', (e) => { if (e.target === $(id)) closeModal(id); });
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal('#modal-stock'); closeModal('#modal-print'); closeModal('#modal-consent'); } });
+
+  /* ---------------- Init ---------------- */
+  populatePatientSelects();
+  populateEmployeeSelect();
+  renderIntakeMedHistory();
+  renderMhConditional();
+  renderMhConditions();
+  renderPatientTable('');
+  renderDentistPanel();
+  renderInventory('');
+  renderPaymentHistory();
+  renderPrintPreview();
+  renderAttendance();
+  renderAnalytics();
+})();
+</script>
+</body>
+</html>
